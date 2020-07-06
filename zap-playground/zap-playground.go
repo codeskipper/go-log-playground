@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	mysubpack "github.com/codeskipper/go-log-playground/zap-playground/mySubPack"
@@ -36,12 +37,20 @@ func do() error {
 
 	//config.EncoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
 	config.EncoderConfig.EncodeTime = RFC3339MilliTimeEncoder
+
+	// ProjectCallerEncoder is customized encoder to report caller path relative to local project
+	config.EncoderConfig.EncodeCaller = ProjectCallerEncoder
+
 	logger, err := config.Build()
 	if err != nil {
 		return err
 	}
+
+	logger.Debug("found the local project folder", zap.String("projectFolder", projectFolder))
+
 	logger.Debug("test", zap.Any("foo", foo{One: "one", Two: "two"}))
 	logger.Info("test with a longer message", zap.Any("foo", foo{One: "one", Two: "two"}))
+
 	logger.Warn("test")
 	logger.Error("test")
 	mysubpack.Try(logger)
@@ -51,6 +60,12 @@ func do() error {
 type foo struct {
 	One string
 	Two string
+}
+
+// ProjectCallerEncoder returns a ./package/file:line description of the caller. The Function caller path is relative to the local project path
+func ProjectCallerEncoder(caller zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
+	//enc.AppendString(filepath.Base(caller.FullPath()))
+	enc.AppendString("." + strings.TrimPrefix(caller.FullPath(), projectFolder))
 }
 
 // RFC3339MilliTimeEncoder serializes a time.Time to a RFC3339-formatted string with millisecond precision
