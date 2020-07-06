@@ -63,6 +63,7 @@ type foo struct {
 }
 
 // ProjectCallerEncoder returns a ./package/file:line description of the caller. The Function caller path is relative to the local project path
+// thanks to iHelos at https://stackoverflow.com/a/53250625/4326287
 func ProjectCallerEncoder(caller zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
 	//enc.AppendString(filepath.Base(caller.FullPath()))
 	enc.AppendString("." + strings.TrimPrefix(caller.FullPath(), projectFolder))
